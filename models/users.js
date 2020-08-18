@@ -1,5 +1,5 @@
 var mongoose = require("mongoose");
-// var bcrypt = require("bcrypt")
+var bcrypt = require("bcrypt")
 var Schema = mongoose.Schema;
 
 var userSchema = new Schema(
@@ -31,6 +31,15 @@ var userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", async function (next) {
+  try {
+    if (this.password && this.isModified("password")) {
+      this.password = await bcrypt.hashSync(this.password, 8);
+    }
+    return next();
+  } catch (error) {}
+});
 
 userSchema.methods.verifyPassword = async function (password) {
   return await compare(password, this.password);
